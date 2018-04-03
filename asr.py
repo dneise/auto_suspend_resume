@@ -82,7 +82,8 @@ def is_suspended():
             AND fStart < '{}'
         ORDER BY fStart DESC
         LIMIT 1
-    '''.format(datetime.utcnow().isoformat())
+        '''.format(datetime.utcnow().isoformat()),
+        scheduler
     )
     return last_suspend_or_resume_entry.iloc[0].fMeasurementTypeKey == 11
 
