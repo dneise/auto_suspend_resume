@@ -12,8 +12,6 @@ def main():
     should_currently_park = False
 
     while True:
-        time.sleep(30)  # seconds
-
         g_20 = calc_g_20()
         should_start = g_20 > 2
         should_stop = g_20 <= 0
@@ -40,6 +38,8 @@ def main():
             # since in this case the shutdown is not executed
             # so we resume in order to perform the shutdown.
             make_resume_entry()
+
+        time.sleep(30)  # seconds
 
 
 def calc_g_20():
