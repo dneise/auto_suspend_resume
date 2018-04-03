@@ -102,16 +102,20 @@ def make_resume_entry():
 
 
 def main():
-    should_park = False
+    should_currently_park = False
 
     while True:
         time.sleep(30)  # seconds
-        g_20 = calc_g_20()
 
-        should_park = (g_20 > 2) or (should_park and (g_20 > 0))
+        g_20 = calc_g_20()
+        should_start = g_20 > 2
+        should_stop = g_20 <= 0
+
+        should_currently_park = should_start or (
+            should_currently_park and not should_stop)
         _is_suspended = is_suspended()
 
-        if should_park:
+        if should_currently_park:
             if _is_suspended:
                 # do nothing, we are already suspended.
                 pass
