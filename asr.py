@@ -76,7 +76,7 @@ def is_suspended():
      11 --> Suspend
      12 --> Resume
     '''
-    last_suspend_or_resume_entry = pd.sql('''
+    last_suspend_or_resume_entry = pd.read_sql('''
         SELECT fMeasurementTypeKey FROM Schedule
         WHERE fMeasurementTypeKey in (11, 12)
             AND fStart < '{}'
