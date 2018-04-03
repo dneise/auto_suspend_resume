@@ -9,10 +9,11 @@ script, like:
     python asr.py
 
 It runs forever (unless there is a bug). Still you might want to add some kind
-of restart line into your crontab like:
+of restart line into your crontab like
 
-    */5 * * * * if ! ps aux | grep asr.py | grep -v grep >/dev/null 2>&1; then some/path/asr.py; fi
+    15 12 * * * if ! ps aux | grep asr.py | grep -v grep >/dev/null 2>&1; then some/path/asr.py; fi
 
+In order to restart it on a daily basis, to make sure it is running after a power cut or so.
 
 ### `db.py` needed
 
