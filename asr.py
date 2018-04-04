@@ -55,12 +55,11 @@ def calculate_number_of_gusts():
     weather = read_some_files()
     weather.set_index('timestamp', inplace=True)
     weather.sort_index(inplace=True)
+    now = datetime.utcnow()
+    weather = weather[now - timedelta(minutes=20):now]
 
     weather['is_strong_gust'] = weather.wind_gust_speed > LIMIT
-    now = datetime.utcnow()
-    w = weather[now - timedelta(minutes=20):now]
-
-    number_of_gusts_in_last_20_minutes = w.is_strong_gust.sum()
+    number_of_gusts_in_last_20_minutes = weather.is_strong_gust.sum()
     return number_of_gusts_in_last_20_minutes
 
 
