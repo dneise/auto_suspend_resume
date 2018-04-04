@@ -22,11 +22,12 @@ def main():
 
     while True:
         number_of_gusts_in_last_20_minutes = calculate_number_of_gusts()
-        should_start = number_of_gusts_in_last_20_minutes > 2
-        should_stop = number_of_gusts_in_last_20_minutes == 0
+        start_parking = number_of_gusts_in_last_20_minutes > 2
+        stop_parking = number_of_gusts_in_last_20_minutes == 0
 
-        should_currently_park = should_start or (
-            should_currently_park and not should_stop)
+        should_currently_park = start_parking or (
+            should_currently_park and not stop_parking
+        )
         _is_suspended = is_suspended()
 
         if should_currently_park and not _is_suspended:
