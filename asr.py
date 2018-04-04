@@ -59,6 +59,9 @@ def calculate_number_of_gusts():
     weather = read_some_files()
     weather.set_index('timestamp', inplace=True)
     weather.sort_index(inplace=True)
+    weather = weather[['wind_gust_speed']]
+    weather = weather.dropna()
+
     now = datetime.utcnow()
     weather = weather[now - RECENT_PAST:now]
     print(weather)
