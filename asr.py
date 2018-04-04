@@ -101,11 +101,6 @@ def insert_row_into_schedule(
     )
 
 
-def delete_row(id, db=scheduler):
-    scheduler.engine.execute("""
-    DELETE FROM Schedule where fScheduleID = {}""".format(id))
-
-
 def is_after_shutdown():
     return fetch_last_entry_of_types_from_schedule(
             types=(STARTUP, SHUTDOWN)
