@@ -64,7 +64,17 @@ def calculate_number_of_gusts():
 
     now = datetime.utcnow()
     weather = weather[now - RECENT_PAST:now]
-    print(weather)
+    # these values are written about once per 30sec
+    # so weather should have ~40 entries.
+    # let's log when there are less than 35
+    if len(weather) < 35:
+        logger.info(
+            'weather has less than 35 entires',
+            extra={
+                'weather': weather,
+                'len(weather)': len(weather)
+            }
+        )
 
     weather['is_strong_gust'] = weather.wind_gust_speed > LIMIT
     number_of_gusts_in_recent_past = weather.is_strong_gust.sum()
