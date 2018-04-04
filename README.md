@@ -2,6 +2,10 @@
 
 ## "Install"
 
+### Dependencies
+
+    pip install json_log_formatter
+
 this is a single script application, so no real installation.
 Just `git clone` the repo into some folder. Specify the DB credentials and execute the
 script, like:
