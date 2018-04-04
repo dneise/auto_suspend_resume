@@ -85,11 +85,15 @@ def is_suspended():
         ) == SUSPEND
 
 
-def insert_row_into_schedule(type_key, date=datetime.utcnow(), db=scheduler):
+def insert_row_into_schedule(
+    type_key,
+    date=datetime.utcnow(),
+    db=scheduler
+):
     db.engine.execute("""
     INSERT INTO Schedule
     (fStart, fMeasurementID, fUser, fMeasurementTypeKey)
-    VALUES ('{now}', 0, "ASR", {type_key})
+    VALUES ('{date}', 0, "ASR", {type_key})
     """.format(
         date=date.isoformat(),
         type_key=type_key
