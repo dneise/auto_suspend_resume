@@ -3,7 +3,12 @@ from datetime import datetime, timedelta
 import time
 import pandas as pd
 from fact.auxservices import MagicWeather
+
 from db import scheduler
+from asr_logging import logging, logger
+
+
+logger.setLevel(logging.INFO)
 LIMIT = 50  # km/h
 RECENT_PAST = timedelta(minutes=20)
 
@@ -21,6 +26,7 @@ SHUTDOWN = measurement_types['Shutdown']['fMeasurementTypeKey']
 
 def main():
     should_currently_park = False
+    logger.info('starting up')
 
     while True:
         number_of_gusts_in_recent_past = calculate_number_of_gusts()
@@ -33,9 +39,11 @@ def main():
         _is_suspended = is_suspended()
 
         if should_currently_park and not _is_suspended:
+            logger.info('suspending operation')
             insert_into_schedule(type_key=SUSPEND)
 
         if not should_currently_park and _is_suspended:
+            logger.info('resuming operation')
             insert_into_schedule(type_key=RESUME)
 
         if _is_suspended and is_after_shutdown():
@@ -53,6 +61,7 @@ def calculate_number_of_gusts():
     weather.sort_index(inplace=True)
     now = datetime.utcnow()
     weather = weather[now - RECENT_PAST:now]
+    print(weather)
 
     weather['is_strong_gust'] = weather.wind_gust_speed > LIMIT
     number_of_gusts_in_recent_past = weather.is_strong_gust.sum()
