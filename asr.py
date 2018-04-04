@@ -65,18 +65,18 @@ def calculate_number_of_gusts():
 
 
 def read_some_files():
+
+    def try_to_read_aux_file(date_or_datetime):
+        try:
+            return weather_sevice.read_date(date_or_datetime)
+        except:
+            return pd.DataFrame()
+
     return pd.concat([
         try_to_read_aux_file(datetime.today() + timedelta(days=-1)),
         try_to_read_aux_file(datetime.today() + timedelta(days=0)),
         try_to_read_aux_file(datetime.today() + timedelta(days=1)),
         ])
-
-
-def try_to_read_aux_file(date_or_datetime):
-    try:
-        return weather_sevice.read_date(date_or_datetime)
-    except:
-        return pd.DataFrame()
 
 
 def is_suspended():
