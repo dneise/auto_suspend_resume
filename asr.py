@@ -15,7 +15,7 @@ RECENT_PAST = timedelta(minutes=20)
 weather_sevice = MagicWeather()
 
 measurement_types = pd.read_sql(
-    "SELECT * FROM MeasurementTypes",
+    "SELECT * FROM MeasurementType",
     scheduler
 ).set_index('fMeasurementTypeName').to_dict('index')
 SUSPEND = measurement_types['Suspend']['fMeasurementTypeKey']
