@@ -108,7 +108,26 @@ def is_after_shutdown():
 
 
 def fetch_last_entry_of_types_from_schedule(types, engine=scheduler):
-    '''
+    '''select the last/current schedule entry-type from a set of types.
+
+    Each row in our scheule has a type, e.g. Startup and Shutdown are types.
+    Say we need to know if the telescope is current in operation or not.
+    We say, we are currently in operation, when we are
+        between Startup and Shutdown.
+    And we are currently not in operation when we are
+        between Shutdown and Startup.
+
+    but this "between" condition is not really needed, all we need to know is
+    if we are: "after a Startup" or "after a Shutdown" in order to understand
+    if we are currently operating.
+
+    In order to answer this question, we just filter all types out of the
+    Schedule but "Startup" and "Shutdown" and look at *the last entry*.
+    By *the last entry* we mean: Of all the entries with an "fStart" entry in
+    the past, take the closest to *now*.
+
+    The same applies to finding out if we are currently suspended or resumed.
+
     types: a tuple of Schedule.fMeasurementTypeKeys,
         e.g. (11, 12), i.e. (SUSPEND, RESUME)
     '''
