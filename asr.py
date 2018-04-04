@@ -71,7 +71,7 @@ def calculate_number_of_gusts():
         logger.info(
             'weather has less than 35 entires',
             extra={
-                'weather': weather,
+                'weather': transform_dataframe_to_dict_for_json_log(weather),
                 'len(weather)': len(weather)
             }
         )
@@ -160,6 +160,13 @@ def select_last_type_from_schedule_set_of_types(types, engine=scheduler):
         ),
         engine
     ).iloc[0].fMeasurementTypeKey
+
+
+def transform_dataframe_to_dict_for_json_log(df):
+    x = df.reset_index(drop=False)
+    x['timestamp'] = x.timestamp.apply(pd.Timestamp.isoformat)
+    x = x.to_dict('records')
+    return x
 
 
 if __name__ == '__main__':
