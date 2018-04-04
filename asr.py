@@ -80,7 +80,7 @@ def try_to_read_aux_file(date_or_datetime):
 
 
 def is_suspended():
-    return fetch_last_entry_of_types_from_schedule(
+    return select_last_type_from_schedule_set_of_types(
             types=(SUSPEND, RESUME)
         ) == SUSPEND
 
@@ -102,12 +102,12 @@ def insert_row_into_schedule(
 
 
 def is_after_shutdown():
-    return fetch_last_entry_of_types_from_schedule(
+    return select_last_type_from_schedule_set_of_types(
             types=(STARTUP, SHUTDOWN)
         ) == SHUTDOWN
 
 
-def fetch_last_entry_of_types_from_schedule(types, engine=scheduler):
+def select_last_type_from_schedule_set_of_types(types, engine=scheduler):
     '''select the last/current schedule entry-type from a set of types.
 
     Each row in our scheule has a type, e.g. Startup and Shutdown are types.
