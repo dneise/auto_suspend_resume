@@ -7,14 +7,23 @@ from db import scheduler
 LIMIT = 50  # km/h
 weather_sevice = MagicWeather()
 
+measurement_types = pd.read_sql(
+    "SELECT * FROM MeasurementTypes",
+    scheduler
+).set_index('fMeasurementTypeName').to_dict('index')
+SUSPEND = measurement_types['Suspend']['fMeasurementTypeKey']
+RESUME = measurement_types['Resume']['fMeasurementTypeKey']
+STARTUP = measurement_types['Startup']['fMeasurementTypeKey']
+SHUTDOWN = measurement_types['Shutdown']['fMeasurementTypeKey']
+
 
 def main():
     should_currently_park = False
 
     while True:
-        g_20 = calc_g_20()
-        should_start = g_20 > 2
-        should_stop = g_20 <= 0
+        number_of_gusts_in_last_20_minutes = calc_g_20()
+        should_start = number_of_gusts_in_last_20_minutes > 2
+        should_stop = number_of_gusts_in_last_20_minutes == 0
 
         should_currently_park = should_start or (
             should_currently_park and not should_stop)
@@ -25,10 +34,10 @@ def main():
                 # do nothing, we are already suspended.
                 pass
             else:
-                make_suspend_entry()
+                insert_row_into_schedule(type_key=SUSPEND)
         else:
             if _is_suspended:
-                make_resume_entry()
+                insert_row_into_schedule(type_key=RESUME)
             else:
                 # do nothing, we should are already operating
                 pass
@@ -37,7 +46,7 @@ def main():
             # we should not be suspended after shutdown,
             # since in this case the shutdown is not executed
             # so we resume in order to perform the shutdown.
-            make_resume_entry()
+            insert_row_into_schedule(type_key=SUSPEND)
 
         time.sleep(30)  # seconds
 
@@ -51,8 +60,8 @@ def calc_g_20():
     now = datetime.utcnow()
     w = weather[now - timedelta(minutes=20):now]
 
-    g_20 = w.is_strong_gust.sum()
-    return g_20
+    number_of_gusts_in_last_20_minutes = w.is_strong_gust.sum()
+    return number_of_gusts_in_last_20_minutes
 
 
 def read_some_files():
@@ -71,48 +80,21 @@ def try_to_read_aux_file(date_or_datetime):
 
 
 def is_suspended():
-    '''
-    fMeasurementTypeKey:
-     11 --> Suspend
-     12 --> Resume
-    '''
-    last_suspend_or_resume_entry = pd.read_sql('''
-        SELECT fMeasurementTypeKey FROM Schedule
-        WHERE fMeasurementTypeKey in (11, 12)
-            AND fStart < '{}'
-        ORDER BY fStart DESC
-        LIMIT 1
-        '''.format(datetime.utcnow().isoformat()),
-        scheduler
-    )
-    return last_suspend_or_resume_entry.iloc[0].fMeasurementTypeKey == 11
+    return fetch_last_entry_of_types_from_schedule(
+            types=(SUSPEND, RESUME)
+        ) == SUSPEND
 
 
-def make_suspend_entry():
-    print("I would make a suspend entry now", datetime.utcnow())
-    # insert_suspend_at(datetime.utcnow())
-
-
-def insert_suspend_at(date, db=scheduler):
-    scheduler.engine.execute("""
+def insert_row_into_schedule(type_key, date=datetime.utcnow(), db=scheduler):
+    db.engine.execute("""
     INSERT INTO Schedule
     (fStart, fMeasurementID, fUser, fMeasurementTypeKey)
-    VALUES ('{}', 0, "ASR", 11)
-    """.format(date.isoformat())
+    VALUES ('{now}', 0, "ASR", {type_key})
+    """.format(
+        date=date.isoformat(),
+        type_key=type_key
+        )
     )
-
-
-def make_resume_entry():
-    print("I would make a resume entry now", datetime.utcnow())
-    # insert_resume_at(datetime.utcnow())
-
-
-def insert_resume_at(date, db=scheduler):
-    scheduler.engine.execute("""
-    INSERT INTO Schedule
-    (fStart, fMeasurementID, fUser, fMeasurementTypeKey)
-    VALUES ('{}', 0, "ASR", 12)
-    """.format(date.isoformat()))
 
 
 def delete_row(id, db=scheduler):
@@ -121,20 +103,28 @@ def delete_row(id, db=scheduler):
 
 
 def is_after_shutdown():
+    return fetch_last_entry_of_types_from_schedule(
+            types=(STARTUP, SHUTDOWN)
+        ) == SHUTDOWN
+
+
+def fetch_last_entry_of_types_from_schedule(types, engine=scheduler):
     '''
-    fMeasurementTypeKey:
-     0 --> Startup
-     6 --> Shutdown
+    types: a tuple of Schedule.fMeasurementTypeKeys,
+        e.g. (11, 12), i.e. (SUSPEND, RESUME)
     '''
-    last_startup_or_shutdown = pd.sql('''
+    return pd.read_sql('''
         SELECT fMeasurementTypeKey FROM Schedule
-        WHERE fMeasurementTypeKey in (0, 6)
-            AND fStart < '{}'
+        WHERE fMeasurementTypeKey in {types}
+            AND fStart < '{now}'
         ORDER BY fStart DESC
         LIMIT 1
-    '''.format(datetime.utcnow().isoformat())
-    )
-    return last_startup_or_shutdown.iloc[0].fMeasurementTypeKey == 6
+        '''.format(
+            now=datetime.utcnow().isoformat(),
+            types=types
+        ),
+        engine
+    ).iloc[0].fMeasurementTypeKey
 
 
 if __name__ == '__main__':
