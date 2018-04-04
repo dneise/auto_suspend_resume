@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import time
 import pandas as pd
 from fact.auxservices import MagicWeather
-
+import json
 from db import scheduler
 from asr_logging import logging, logger
 
@@ -52,6 +52,12 @@ def main():
             # so we resume in order to perform the shutdown.
             insert_into_schedule(type_key=SUSPEND)
 
+        output_current_status_json({
+            'number_of_gusts_in_recent_past': number_of_gusts_in_recent_past,
+            'should_currently_park': should_currently_park,
+            '_is_suspended': _is_suspended,
+            'is_after_shutdown': is_after_shutdown(),
+        })
         time.sleep(30)  # seconds
 
 
@@ -170,8 +176,15 @@ def transform_dataframe_to_dict_for_json_log(df):
         orient='records',
         date_format='iso'
     )
-    import json
     return json.loads(s)
+
+
+def output_current_status_json(status):
+    if 'timestamp' not in status:
+        status['timestamp'] = datetime.utcnow().isoformat()
+
+    with open('current_status.json', 'w') as file:
+        file.write(json.dumps(status))
 
 
 if __name__ == '__main__':
