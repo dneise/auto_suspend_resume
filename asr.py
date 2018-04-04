@@ -183,7 +183,7 @@ def output_current_status_json(status):
     if 'timestamp' not in status:
         status['timestamp'] = datetime.utcnow().isoformat()
 
-    with open('current_status.json', 'w') as file:
+    with open('asr_current_status.json', 'w') as file:
         file.write(json.dumps(status))
 
 
