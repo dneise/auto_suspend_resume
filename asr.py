@@ -21,7 +21,7 @@ def main():
     should_currently_park = False
 
     while True:
-        number_of_gusts_in_last_20_minutes = calc_g_20()
+        number_of_gusts_in_last_20_minutes = calculate_number_of_gusts()
         should_start = number_of_gusts_in_last_20_minutes > 2
         should_stop = number_of_gusts_in_last_20_minutes == 0
 
@@ -51,7 +51,7 @@ def main():
         time.sleep(30)  # seconds
 
 
-def calc_g_20():
+def calculate_number_of_gusts():
     weather = read_some_files()
     weather.set_index('timestamp', inplace=True)
     weather.sort_index(inplace=True)
