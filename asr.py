@@ -5,6 +5,8 @@ import pandas as pd
 from fact.auxservices import MagicWeather
 from db import scheduler
 LIMIT = 50  # km/h
+RECENT_PAST = timedelta(minutes=20)
+
 weather_sevice = MagicWeather()
 
 measurement_types = pd.read_sql(
@@ -21,9 +23,9 @@ def main():
     should_currently_park = False
 
     while True:
-        number_of_gusts_in_last_20_minutes = calculate_number_of_gusts()
-        start_parking = number_of_gusts_in_last_20_minutes > 2
-        stop_parking = number_of_gusts_in_last_20_minutes == 0
+        number_of_gusts_in_recent_past = calculate_number_of_gusts()
+        start_parking = number_of_gusts_in_recent_past > 2
+        stop_parking = number_of_gusts_in_recent_past == 0
 
         should_currently_park = start_parking or (
             should_currently_park and not stop_parking
@@ -50,11 +52,11 @@ def calculate_number_of_gusts():
     weather.set_index('timestamp', inplace=True)
     weather.sort_index(inplace=True)
     now = datetime.utcnow()
-    weather = weather[now - timedelta(minutes=20):now]
+    weather = weather[now - RECENT_PAST:now]
 
     weather['is_strong_gust'] = weather.wind_gust_speed > LIMIT
-    number_of_gusts_in_last_20_minutes = weather.is_strong_gust.sum()
-    return number_of_gusts_in_last_20_minutes
+    number_of_gusts_in_recent_past = weather.is_strong_gust.sum()
+    return number_of_gusts_in_recent_past
 
 
 def read_some_files():
@@ -72,12 +74,6 @@ def read_some_files():
         ])
 
 
-def is_suspended():
-    return select_last_type_from_schedule_set_of_types(
-            types=(SUSPEND, RESUME)
-        ) == SUSPEND
-
-
 def insert_into_schedule(
     type_key,
     date=datetime.utcnow(),
@@ -92,6 +88,12 @@ def insert_into_schedule(
         type_key=type_key
         )
     )
+
+
+def is_suspended():
+    return select_last_type_from_schedule_set_of_types(
+            types=(SUSPEND, RESUME)
+        ) == SUSPEND
 
 
 def is_after_shutdown():
