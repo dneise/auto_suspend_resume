@@ -29,24 +29,17 @@ def main():
             should_currently_park and not should_stop)
         _is_suspended = is_suspended()
 
-        if should_currently_park:
-            if _is_suspended:
-                # do nothing, we are already suspended.
-                pass
-            else:
-                insert_row_into_schedule(type_key=SUSPEND)
-        else:
-            if _is_suspended:
-                insert_row_into_schedule(type_key=RESUME)
-            else:
-                # do nothing, we should are already operating
-                pass
+        if should_currently_park and not _is_suspended:
+            insert_into_schedule(type_key=SUSPEND)
+
+        if not should_currently_park and _is_suspended:
+            insert_into_schedule(type_key=RESUME)
 
         if _is_suspended and is_after_shutdown():
             # we should not be suspended after shutdown,
             # since in this case the shutdown is not executed
             # so we resume in order to perform the shutdown.
-            insert_row_into_schedule(type_key=SUSPEND)
+            insert_into_schedule(type_key=SUSPEND)
 
         time.sleep(30)  # seconds
 
@@ -84,7 +77,7 @@ def is_suspended():
         ) == SUSPEND
 
 
-def insert_row_into_schedule(
+def insert_into_schedule(
     type_key,
     date=datetime.utcnow(),
     db=scheduler
