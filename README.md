@@ -10,14 +10,17 @@ this is a single script application, so no real installation.
 Just `git clone` the repo into some folder. Specify the DB credentials and execute the
 script, like:
 
-    python asr.py
+    $ python asr.py
 
-It runs forever (unless there is a bug). Still you might want to add some kind
-of restart line into your crontab like
+On newdaq this script is (re-)started once per hour by cron (in case it died):
 
-    15 12 * * * if ! ps aux | grep asr.py | grep -v grep >/dev/null 2>&1; then some/path/asr.py; fi
+    28 * * * * if ! ps aux | grep asr.py | grep -v grep >/dev/null 2>&1; then /home/fact/anaconda3/bin/python /home/fact/auto_suspend_resume/asr.py; fi
 
-In order to restart it on a daily basis, to make sure it is running after a power cut or so.
+Experts or shifters who need to shut it down should:
+
+ * comment out the line above from the crontab
+ * `sudo killall asr.py`
+
 
 ### `db.py` needed
 
