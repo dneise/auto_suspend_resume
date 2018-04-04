@@ -87,7 +87,7 @@ def calculate_number_of_gusts():
         transform_dataframe_to_dict_for_json_log(weather)
     )
     number_of_gusts_in_recent_past = weather.is_strong_gust.sum()
-    return number_of_gusts_in_recent_past
+    return int(number_of_gusts_in_recent_past)
 
 
 def read_some_files():
@@ -122,15 +122,15 @@ def insert_into_schedule(
 
 
 def is_suspended():
-    return select_last_type_from_schedule_set_of_types(
+    return bool(select_last_type_from_schedule_set_of_types(
             types=(SUSPEND, RESUME)
-        ) == SUSPEND
+        ) == SUSPEND)
 
 
 def is_after_shutdown():
-    return select_last_type_from_schedule_set_of_types(
+    return bool(select_last_type_from_schedule_set_of_types(
             types=(STARTUP, SHUTDOWN)
-        ) == SHUTDOWN
+        ) == SHUTDOWN)
 
 
 def select_last_type_from_schedule_set_of_types(types, engine=scheduler):
