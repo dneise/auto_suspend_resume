@@ -71,12 +71,16 @@ def calculate_number_of_gusts():
         logger.info(
             'weather has less than 35 entires',
             extra={
-                'weather': transform_dataframe_to_dict_for_json_log(weather),
                 'len(weather)': len(weather)
             }
         )
 
     weather['is_strong_gust'] = weather.wind_gust_speed > LIMIT
+
+    logger.debug(
+        'debug weather DataFrame',
+        transform_dataframe_to_dict_for_json_log(weather)
+    )
     number_of_gusts_in_recent_past = weather.is_strong_gust.sum()
     return number_of_gusts_in_recent_past
 
