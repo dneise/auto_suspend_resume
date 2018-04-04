@@ -167,10 +167,12 @@ def select_last_type_from_schedule_set_of_types(types, engine=scheduler):
 
 
 def transform_dataframe_to_dict_for_json_log(df):
-    x = df.reset_index(drop=False)
-    x['timestamp'] = x.timestamp.apply(pd.Timestamp.isoformat)
-    x = x.to_dict('records')
-    return x
+    s = df.reset_index(drop=False).to_json(
+        orient='records',
+        date_format='iso'
+    )
+    import json
+    return json.loads(s)
 
 
 if __name__ == '__main__':
