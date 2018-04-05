@@ -36,15 +36,15 @@ def main():
 
         if should_currently_park and not _is_suspended:
             logger.info('suspending operation')
-            insert_into_schedule(type_key=types.Suspend)
+            insert_into_schedule(types.Suspend)
 
         if _is_suspended:
             if not should_currently_park and is_last_suspend_by_us():
                 logger.info('resuming operation')
-                insert_into_schedule(type_key=types.Resume)
+                insert_into_schedule(types.Resume)
             elif is_after_shutdown():
                 logger.info('resuming operation after shutdown')
-                insert_into_schedule(type_key=types.Resume)
+                insert_into_schedule(types.Resume)
 
         output_current_status_json({
             'number_of_gusts_in_recent_past': number_of_gusts_in_recent_past,
