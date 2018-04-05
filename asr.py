@@ -42,19 +42,13 @@ def main():
             logger.info('suspending operation')
             insert_into_schedule(type_key=SUSPEND)
 
-        if (
-            _is_suspended and
-            is_last_suspend_by_us() and
-            not should_currently_park
-        ):
-            logger.info('resuming operation')
-            insert_into_schedule(type_key=RESUME)
-
-        if _is_suspended and is_after_shutdown():
-            # we should not be suspended after shutdown,
-            # since in this case the shutdown is not executed
-            # so we resume in order to perform the shutdown.
-            insert_into_schedule(type_key=RESUME)
+        if _is_suspended:
+            if not should_currently_park and is_last_suspend_by_us():
+                logger.info('resuming operation')
+                insert_into_schedule(type_key=RESUME)
+            elif is_after_shutdown():
+                logger.info('resuming operation after shutdown')
+                insert_into_schedule(type_key=RESUME)
 
         output_current_status_json({
             'number_of_gusts_in_recent_past': number_of_gusts_in_recent_past,
