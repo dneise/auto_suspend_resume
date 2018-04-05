@@ -42,7 +42,11 @@ def main():
             logger.info('suspending operation')
             insert_into_schedule(type_key=SUSPEND)
 
-        if not should_currently_park and _is_suspended:
+        if (
+            _is_suspended and
+            is_last_suspend_by_us() and
+            not should_currently_park
+        ):
             logger.info('resuming operation')
             insert_into_schedule(type_key=RESUME)
 
@@ -169,6 +173,21 @@ def select_last_type_from_schedule_set_of_types(types, engine=scheduler):
         ),
         engine
     ).iloc[0].fMeasurementTypeKey
+
+
+def is_last_suspend_by_us(engine=scheduler):
+    return pd.read_sql('''
+        SELECT fUser FROM Schedule
+        WHERE fMeasurementTypeKey={type}
+            AND fStart < '{now}'
+        ORDER BY fStart DESC
+        LIMIT 1
+        '''.format(
+            now=datetime.utcnow().isoformat(),
+            type=SUSPEND
+        ),
+        engine
+    ).iloc[0].fUser == "ASR"
 
 
 def transform_dataframe_to_dict_for_json_log(df):
