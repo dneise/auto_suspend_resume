@@ -14,14 +14,10 @@ RECENT_PAST = timedelta(minutes=20)
 
 weather_sevice = MagicWeather()
 
-measurement_types = pd.read_sql(
+types = pd.read_sql(
     "SELECT * FROM MeasurementType",
     scheduler
-).set_index('fMeasurementTypeName').to_dict('index')
-SUSPEND = measurement_types['Suspend']['fMeasurementTypeKey']
-RESUME = measurement_types['Resume']['fMeasurementTypeKey']
-STARTUP = measurement_types['Startup']['fMeasurementTypeKey']
-SHUTDOWN = measurement_types['Shutdown']['fMeasurementTypeKey']
+).set_index('fMeasurementTypeName').fMeasurementTypeKey
 
 
 def main():
@@ -40,15 +36,15 @@ def main():
 
         if should_currently_park and not _is_suspended:
             logger.info('suspending operation')
-            insert_into_schedule(type_key=SUSPEND)
+            insert_into_schedule(type_key=types.Suspend)
 
         if _is_suspended:
             if not should_currently_park and is_last_suspend_by_us():
                 logger.info('resuming operation')
-                insert_into_schedule(type_key=RESUME)
+                insert_into_schedule(type_key=types.Resume)
             elif is_after_shutdown():
                 logger.info('resuming operation after shutdown')
-                insert_into_schedule(type_key=RESUME)
+                insert_into_schedule(type_key=types.Resume)
 
         output_current_status_json({
             'number_of_gusts_in_recent_past': number_of_gusts_in_recent_past,
@@ -121,14 +117,14 @@ def insert_into_schedule(
 
 def is_suspended():
     return bool(select_last_type_from_schedule_set_of_types(
-            types=(SUSPEND, RESUME)
-        ) == SUSPEND)
+            types=(types.Suspend, types.Resume)
+        ) == types.Suspend)
 
 
 def is_after_shutdown():
     return bool(select_last_type_from_schedule_set_of_types(
-            types=(STARTUP, SHUTDOWN)
-        ) == SHUTDOWN)
+            types=(types.Startup, types.Shutdown)
+        ) == types.Shutdown)
 
 
 def select_last_type_from_schedule_set_of_types(types, engine=scheduler):
@@ -153,7 +149,7 @@ def select_last_type_from_schedule_set_of_types(types, engine=scheduler):
     The same applies to finding out if we are currently suspended or resumed.
 
     types: a tuple of Schedule.fMeasurementTypeKeys,
-        e.g. (11, 12), i.e. (SUSPEND, RESUME)
+        e.g. (11, 12), i.e. (types.Suspend, types.Resume)
     '''
     return pd.read_sql('''
         SELECT fMeasurementTypeKey FROM Schedule
@@ -178,7 +174,7 @@ def is_last_suspend_by_us(engine=scheduler):
         LIMIT 1
         '''.format(
             now=datetime.utcnow().isoformat(),
-            type=SUSPEND
+            type=types.Suspend
         ),
         engine
     ).iloc[0].fUser == "ASR"
